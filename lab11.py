@@ -12,35 +12,52 @@ import socket
 
 async def gather_doubled(numbers):
     # Outline (write your plan here first):
-    #   ...
-    # TODO (Part 1, async): run one async task per number that returns n * 2, all
-    #   CONCURRENTLY with asyncio.gather, and return the results as a list in the same
-    #   order as `numbers`.
-    pass
+    #   1. Define a helper coroutine that returns n * 2.
+    #   2. Create one coroutine per number.
+    #   3. Run them all concurrently with asyncio.gather.
+    #   4. Return the results as a list (gather keeps the original order).
+    async def double(n):
+        return n * 2
+
+    coroutines = [double(n) for n in numbers]
+    results = await asyncio.gather(*coroutines)
+    return list(results)
+
+
 
 
 async def fastest(jobs):
     # Outline:
-    #   ...
-    # TODO (Part 2, async): `jobs` is a list of (label, delay) pairs. Start them all
-    #   concurrently - each one just does `await asyncio.sleep(delay)` - and return the
-    #   label of the FIRST job to finish. (Hint: asyncio.as_completed.)
-    pass
+    #   1. Define a helper coroutine that sleeps for the delay, then returns the label.
+    #   2. Create one coroutine per (label, delay) pair.
+    #   3. Iterate with asyncio.as_completed, which yields them in finishing order.
+    #   4. Return the result of the first one to finish.
+    async def job(label, delay):
+        await asyncio.sleep(delay)
+        return label
+
+    coroutines = [job(label, delay) for label, delay in jobs]
+    for c in asyncio.as_completed(coroutines):
+        return await c
 
 
 def echo_once(host, port, message):
     # Outline:
-    #   ...
-    # TODO (Part 3, sockets): open a TCP socket and connect to (host, port). Send
-    #   `message` (encode it to bytes first), receive the server's reply, and return it
-    #   as a string. (Hint: socket.socket, .connect, .sendall, .recv, .decode.)
-    pass
+    #   1. Create a TCP socket with a with-block so it closes automatically.
+    #   2. Connect to (host, port).
+    #   3. Send the message encoded as bytes.
+    #   4. Receive the reply and return it decoded as a string.
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+        s.connect((host, port))
+        s.sendall(message.encode())
+        data = s.recv(1024)
+    return data.decode()
 
 
 def main():
     # Optional scratch space - try the async parts here, e.g.:
-    # print(asyncio.run(gather_doubled([1, 2, 3, 4])))   # [2, 4, 6, 8]
-    pass
+    print(asyncio.run(gather_doubled([1, 2, 3, 4])))
+    print(asyncio.run(fastest([("A", 0.06), ("B", 0.02), ("C", 0.04)])))
 
 
 if __name__ == "__main__":
